@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KTCA Gradebook</title>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --surface: #ffffff;
+    --surface-2: #f0eee8;
+    --border: #e2dfd6;
+    --text: #1d1c1a;
+    --muted: #6d6a62;
+    --accent: #2f5d50;
+    --accent-ink: #ffffff;
+    --danger: #b3412e;
+    --warn: #9a6a00;
+    --K: #3367c4;
+    --T: #8a4fb8;
+    --C: #1f8a7a;
+    --A: #c26a1b;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #151514;
+      --surface: #1e1e1c;
+      --surface-2: #272724;
+      --border: #34332f;
+      --text: #ecebe6;
+      --muted: #a09d94;
+      --accent: #7fc4ae;
+      --accent-ink: #10201b;
+      --danger: #ef8a76;
+      --warn: #e2b54d;
+      --K: #7aa5f0;
+      --T: #c191e6;
+      --C: #5cc9b6;
+      --A: #eda05c;
+      --shadow: none;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #151514; --surface: #1e1e1c; --surface-2: #272724; --border: #34332f;
+    --text: #ecebe6; --muted: #a09d94; --accent: #7fc4ae; --accent-ink: #10201b;
+    --danger: #ef8a76; --warn: #e2b54d;
+    --K: #7aa5f0; --T: #c191e6; --C: #5cc9b6; --A: #eda05c; --shadow: none;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 16px 64px; }
+
+  header {
+    display: flex; flex-wrap: wrap; gap: 12px 20px;
+    align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+  h1 span { color: var(--muted); font-weight: 500; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+  button, select, input {
+    font: inherit; color: inherit;
+  }
+  button {
+    border: 1px solid var(--border); background: var(--surface);
+    padding: 7px 12px; border-radius: 8px; cursor: pointer;
+  }
+  button:hover { background: var(--surface-2); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button.primary:hover { filter: brightness(1.08); }
+  button.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+  button.ghost:hover { color: var(--text); background: var(--surface-2); }
+  button.danger { color: var(--danger); }
+  button.small { padding: 4px 8px; font-size: 13px; }
+
+  select, input[type="text"], input[type="number"], input[type="date"] {
+    border: 1px solid var(--border); background: var(--surface);
+    padding: 7px 10px; border-radius: 8px; min-width: 0;
+  }
+  input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input[type="number"] { -moz-appearance: textfield; }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  select#subject { font-weight: 600; min-width: 160px; }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); }
+  .stack > * + * { margin-top: 20px; }
+
+  /* Summary */
+  .summary { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; align-items: center; }
+  @media (max-width: 560px) { .summary { grid-template-columns: minmax(0, 1fr); } }
+  .big .label { color: var(--muted); font-size: 13px; }
+  .big .value { font-size: 52px; font-weight: 700; letter-spacing: -.03em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .big .sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .big .sub b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .cats { display: grid; gap: 10px; }
+  .cat { display: grid; grid-template-columns: 158px minmax(0, 1fr) 92px; gap: 10px; align-items: center; font-size: 14px; }
+  .cat .name { display: flex; align-items: center; gap: 8px; }
+  .cat .name small { color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .bar { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 99px; transition: width .25s ease; }
+  .cat .pct { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .muted { color: var(--muted); }
+  .extra { color: var(--muted); opacity: .55; font-weight: 400; }
+  .big .value .extra { font-size: .5em; letter-spacing: 0; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; margin: 0 -18px; padding: 0 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td .score { display: block; font-variant-numeric: tabular-nums; }
+  td .score small { color: var(--muted); }
+  td.mark { font-weight: 700; }
+  td.name { white-space: normal; min-width: 120px; }
+  td.name small { display: block; color: var(--muted); }
+  tr.editing td { background: var(--surface-2); }
+  .empty { text-align: center; color: var(--muted); padding: 28px 8px; }
+  .actions { display: flex; gap: 2px; justify-content: flex-end; }
+
+  /* Weights */
+  .weights { display: grid; gap: 8px; }
+  .weight-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 56px; gap: 10px; align-items: center; }
+  .weight-row input { width: 100%; text-align: right; }
+  .weight-row .norm { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; }
+  .hint { color: var(--muted); font-size: 12.5px; margin-top: 10px; }
+
+  /* Form */
+  form .field { display: grid; gap: 4px; margin-bottom: 12px; }
+  form .field label { font-size: 13px; color: var(--muted); }
+  form .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .score-row { display: grid; grid-template-columns: minmax(0, 1fr) 58px 10px 58px 48px; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .score-row input { width: 100%; text-align: right; padding: 7px 8px; }
+  .score-row .slash { color: var(--muted); text-align: center; }
+  .score-row .pct { text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .score-row.bad input { border-color: var(--danger); }
+  .score-row .name { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .preview { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0 4px; border-top: 1px solid var(--border); margin-top: 12px; }
+  .preview b { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .msg { font-size: 13px; min-height: 18px; margin: 6px 0 10px; }
+  .msg.error { color: var(--danger); }
+  .msg.warn { color: var(--warn); }
+  .form-actions { display: flex; gap: 8px; }
+  .form-actions .primary { flex: 1; }
+
+  .foot { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .explain { font-size: 12.5px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Gradebook <span>· Knowledge · Thinking · Communication · Application</span></h1>
+    <div class="row">
+      <select id="subject" aria-label="Subject"></select>
+      <button id="newSubject">+ Subject</button>
+      <button id="renameSubject" class="ghost">Rename</button>
+      <button id="deleteSubject" class="ghost danger">Delete</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main class="stack">
+      <section class="card">
+        <div class="summary">
+          <div class="big">
+            <div class="label">Course mark</div>
+            <div class="value" id="finalMark">—</div>
+            <div class="sub">Assessment-weighted avg: <b id="awAvg">—</b></div>
+            <div class="sub" id="countLine"></div>
+          </div>
+          <div class="cats" id="catAverages"></div>
+        </div>
+        <p class="explain">
+          <b>Course mark</b> averages each category across all assessments (weighted by assessment weight),
+          then combines the four categories with this subject's weights, rescaled over the categories that have marks.
+          <b>Assessment-weighted avg</b> averages each assessment's own mark by its weight, shown for reference.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Assessments</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Assessment</th>
+                <th class="num">Weight</th>
+                <th class="num">K</th>
+                <th class="num">T</th>
+                <th class="num">C</th>
+                <th class="num">A</th>
+                <th class="num">Mark</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="foot">
+        <button id="exportBtn" class="ghost">Export JSON</button>
+        <button id="importBtn" class="ghost">Import JSON</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <button id="resetBtn" class="ghost danger">Reset everything</button>
+      </div>
+    </main>
+
+    <aside class="stack">
+      <section class="card">
+        <h2>Category weights</h2>
+        <div class="weights" id="weights"></div>
+        <div class="hint">Enter any numbers (e.g. 0.225, 0.15, 0.15, 0.225). They're rescaled to 100%.</div>
+      </section>
+
+      <section class="card">
+        <h2 id="formTitle">Add assessment</h2>
+        <form id="form" novalidate autocomplete="off">
+          <div class="field">
+            <label for="fName">Name</label>
+            <input type="text" id="fName" placeholder="e.g. Unit 2 Test">
+          </div>
+          <div class="two">
+            <div class="field">
+              <label for="fWeight">Weight</label>
+              <input type="number" id="fWeight" step="any" min="0" inputmode="decimal" value="1">
+            </div>
+            <div class="field">
+              <label for="fDate">Date (optional)</label>
+              <input type="date" id="fDate">
+            </div>
+          </div>
+          <div class="field"><label>Scores (leave a category blank if it wasn't assessed)</label></div>
+          <div id="scoreRows"></div>
+          <div class="preview">
+            <span class="muted">This assessment</span>
+            <b id="preview">—</b>
+          </div>
+          <div class="msg" id="msg"></div>
+          <div class="form-actions">
+            <button type="submit" class="primary" id="submitBtn">Add to gradebook</button>
+            <button type="button" id="cancelEdit" hidden>Cancel</button>
+          </div>
+        </form>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script src="calc.js"></script>
+<script>
+(function () {
+  'use strict';
+  var CATS = Calc.CATS;
+  var NAMES = Calc.CAT_NAMES;
+  var KEY = 'ktca-gradebook-v1';
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- state ----------
+  var state = load();
+  var editingId = null;
+
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  function newSubject(name) {
+    return { id: uid(), name: name, weights: { K: 0.25, T: 0.25, C: 0.25, A: 0.25 }, assessments: [] };
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var s = JSON.parse(raw);
+        if (s && Array.isArray(s.subjects) && s.subjects.length) return s;
+      }
+    } catch (e) { /* storage unavailable; start fresh */ }
+    var first = newSubject('My Course');
+    return { subjects: [first], activeSubjectId: first.id };
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  }
+
+  function active() {
+    var s = state.subjects.find(function (x) { return x.id === state.activeSubjectId; });
+    if (!s) { s = state.subjects[0]; state.activeSubjectId = s.id; }
+    return s;
+  }
+
+  // ---------- formatting ----------
+  function pct(x) { return x === null || x === undefined ? '—' : (x * 100).toFixed(1) + '%'; }
+  // 2 decimals, then 4 more grayed out: 99.12<gray>1234</gray>%
+  function pctHTML(x) {
+    if (x === null || x === undefined) return '—';
+    var s = (x * 100).toFixed(6);
+    var cut = s.indexOf('.') + 3;
+    return s.slice(0, cut) + '<span class="extra">' + s.slice(cut) + '</span>%';
+  }
+  function n(x) { return String(+Number(x).toFixed(2)); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // ---------- render ----------
+  function renderSubjects() {
+    var sel = $('subject');
+    sel.innerHTML = state.subjects.map(function (s) {
+      return '<option value="' + s.id + '"' + (s.id === state.activeSubjectId ? ' selected' : '') + '>' + esc(s.name) + '</option>';
+    }).join('');
+    $('deleteSubject').disabled = state.subjects.length <= 1;
+  }
+
+  function renderWeights() {
+    var s = active();
+    $('weights').innerHTML = CATS.map(function (c) {
+      return '<div class="weight-row">' +
+        '<label class="row" for="w' + c + '"><span class="dot" style="background:var(--' + c + ')"></span>' + NAMES[c] + '</label>' +
+        '<input type="number" id="w' + c + '" data-cat="' + c + '" step="any" min="0" inputmode="decimal" value="' + n(s.weights[c] || 0) + '">' +
+        '<span class="norm" id="wn' + c + '"></span>' +
+      '</div>';
+    }).join('');
+    renderWeightNorms();
+  }
+
+  function renderWeightNorms() {
+    var norm = Calc.normalize(active().weights);
+    CATS.forEach(function (c) {
+      $('wn' + c).textContent = norm[c] ? (norm[c] * 100).toFixed(1) + '%' : '0%';
+    });
+  }
+
+  function renderSummary() {
+    var s = active();
+    var avgs = Calc.categoryAverages(s);
+    var norm = Calc.normalize(s.weights);
+    $('finalMark').innerHTML = pctHTML(Calc.finalMark(s));
+    $('awAvg').innerHTML = pctHTML(Calc.assessmentWeightedAverage(s));
+    var count = s.assessments.length;
+    var totalW = s.assessments.reduce(function (a, x) { return a + Number(x.weight || 0); }, 0);
+    $('countLine').textContent = count
+      ? count + ' assessment' + (count === 1 ? '' : 's') + ' · total weight ' + n(totalW)
+      : 'No assessments yet';
+    $('catAverages').innerHTML = CATS.map(function (c) {
+      var v = avgs[c];
+      var w = v === null ? 0 : Math.max(0, Math.min(1, v)) * 100;
+      return '<div class="cat">' +
+        '<span class="name"><span class="dot" style="background:var(--' + c + ')"></span>' + NAMES[c] +
+          ' <small>' + (norm[c] ? Math.round(norm[c] * 100) + '%' : '') + '</small></span>' +
+        '<span class="bar"><i style="width:' + w + '%;background:var(--' + c + ')"></i></span>' +
+        '<span class="pct' + (v === null ? ' muted' : '') + '">' + pctHTML(v) + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderTable() {
+    var s = active();
+    if (!s.assessments.length) {
+      $('rows').innerHTML = '<tr><td colspan="8" class="empty">Add your first assessment using the form.</td></tr>';
+      return;
+    }
+    $('rows').innerHTML = s.assessments.map(function (a) {
+      var cells = CATS.map(function (c) {
+        var sc = a.scores[c];
+        var p = Calc.scorePct(sc);
+        if (p === null) return '<td class="num muted">—</td>';
+        return '<td class="num"><span class="score">' + n(sc.earned) + '/' + n(sc.total) +
+          '</span><small class="muted">' + pct(p) + '</small></td>';
+      }).join('');
+      return '<tr' + (a.id === editingId ? ' class="editing"' : '') + '>' +
+        '<td class="name">' + esc(a.name) + (a.date ? '<small>' + esc(a.date) + '</small>' : '') + '</td>' +
+        '<td class="num">' + n(a.weight) + '</td>' +
+        cells +
+        '<td class="num mark">' + pctHTML(Calc.assessmentMark(a, s.weights)) + '</td>' +
+        '<td><div class="actions">' +
+          '<button class="ghost small" data-edit="' + a.id + '">Edit</button>' +
+          '<button class="ghost small danger" data-del="' + a.id + '">Delete</button>' +
+        '</div></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function renderScoreRows() {
+    $('scoreRows').innerHTML = CATS.map(function (c) {
+      return '<div class="score-row" id="row' + c + '">' +
+        '<span class="name"><span class="dot" style="background:var(--' + c + ')"></span>' + NAMES[c] + '</span>' +
+        '<input type="number" id="e' + c + '" step="any" min="0" inputmode="decimal" placeholder="score" aria-label="' + NAMES[c] + ' score">' +
+        '<span class="slash">/</span>' +
+        '<input type="number" id="t' + c + '" step="any" min="0" inputmode="decimal" placeholder="out of" aria-label="' + NAMES[c] + ' out of">' +
+        '<span class="pct" id="p' + c + '"></span>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderAll() {
+    renderSubjects();
+    renderWeights();
+    renderSummary();
+    renderTable();
+    updatePreview();
+  }
+
+  // ---------- form ----------
+  // Reads the form. Returns { assessment, errors[], warnings[] }.
+  function readForm() {
+    var errors = [], warnings = [];
+    var scores = {};
+    CATS.forEach(function (c) {
+      var eRaw = $('e' + c).value.trim();
+      var tRaw = $('t' + c).value.trim();
+      var bad = false;
+      scores[c] = null;
+      if (eRaw === '' && tRaw === '') {
+        // not assessed
+      } else if (eRaw === '' || tRaw === '') {
+        errors.push(NAMES[c] + ': enter both the score and what it’s out of.'); bad = true;
+      } else {
+        var e = Number(eRaw), t = Number(tRaw);
+        if (!isFinite(e) || !isFinite(t)) { errors.push(NAMES[c] + ': not a number.'); bad = true; }
+        else if (t <= 0) { errors.push(NAMES[c] + ': “out of” must be more than 0.'); bad = true; }
+        else if (e < 0) { errors.push(NAMES[c] + ': score can’t be negative.'); bad = true; }
+        else {
+          if (e > t) warnings.push(NAMES[c] + ' is over 100% (bonus marks?).');
+          scores[c] = { earned: e, total: t };
+        }
+      }
+      $('row' + c).classList.toggle('bad', bad);
+      var p = Calc.scorePct(scores[c]);
+      $('p' + c).textContent = p === null ? '' : pct(p);
+    });
+
+    var weightRaw = $('fWeight').value.trim();
+    var weight = Number(weightRaw);
+    if (weightRaw === '' || !isFinite(weight) || weight <= 0) errors.push('Weight must be a number greater than 0.');
+    if (!CATS.some(function (c) { return scores[c]; }) && !errors.length) errors.push('Enter a score for at least one category.');
+
+    return {
+      assessment: {
+        id: editingId || uid(),
+        name: $('fName').value.trim(),
+        weight: weight,
+        date: $('fDate').value,
+        scores: scores,
+      },
+      errors: errors,
+      warnings: warnings,
+    };
+  }
+
+  function showMsg(text, kind) {
+    var m = $('msg');
+    m.textContent = text || '';
+    m.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  function updatePreview(showErrors) {
+    var r = readForm();
+    var mark = Calc.assessmentMark(r.assessment, active().weights);
+    $('preview').innerHTML = pctHTML(mark);
+    if (showErrors && r.errors.length) showMsg(r.errors[0], 'error');
+    else if (r.warnings.length) showMsg(r.warnings[0], 'warn');
+    else showMsg('');
+    return r;
+  }
+
+  function resetForm() {
+    editingId = null;
+    $('form').reset();
+    $('fWeight').value = '1';
+    CATS.forEach(function (c) { $('row' + c).classList.remove('bad'); });
+    $('formTitle').textContent = 'Add assessment';
+    $('submitBtn').textContent = 'Add to gradebook';
+    $('cancelEdit').hidden = true;
+    updatePreview();
+  }
+
+  function startEdit(id) {
+    var a = active().assessments.find(function (x) { return x.id === id; });
+    if (!a) return;
+    editingId = id;
+    $('fName').value = a.name;
+    $('fWeight').value = n(a.weight);
+    $('fDate').value = a.date || '';
+    CATS.forEach(function (c) {
+      var sc = a.scores[c];
+      $('e' + c).value = sc ? sc.earned : '';
+      $('t' + c).value = sc ? sc.total : '';
+    });
+    $('formTitle').textContent = 'Edit assessment';
+    $('submitBtn').textContent = 'Save changes';
+    $('cancelEdit').hidden = false;
+    updatePreview();
+    renderTable();
+    $('form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    $('fName').focus({ preventScroll: true });
+  }
+
+  $('form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var r = updatePreview(true);
+    if (r.errors.length) return;
+    var s = active();
+    var a = r.assessment;
+    var i = editingId ? s.assessments.findIndex(function (x) { return x.id === editingId; }) : -1;
+    if (!a.name) a.name = 'Assessment ' + (i >= 0 ? i + 1 : s.assessments.length + 1);
+    if (i >= 0) s.assessments[i] = a; else s.assessments.push(a);
+    save();
+    resetForm();
+    renderSummary();
+    renderTable();
+    $('fName').focus();
+  });
+
+  $('form').addEventListener('input', function () { updatePreview(); });
+  $('cancelEdit').addEventListener('click', function () { resetForm(); renderTable(); });
+
+  // ---------- table actions ----------
+  $('rows').addEventListener('click', function (ev) {
+    var btn = ev.target.closest('button');
+    if (!btn) return;
+    if (btn.dataset.edit) startEdit(btn.dataset.edit);
+    if (btn.dataset.del) {
+      var s = active();
+      var a = s.assessments.find(function (x) { return x.id === btn.dataset.del; });
+      if (!a || !confirm('Delete “' + a.name + '”?')) return;
+      s.assessments = s.assessments.filter(function (x) { return x.id !== a.id; });
+      if (editingId === a.id) resetForm();
+      save();
+      renderSummary();
+      renderTable();
+    }
+  });
+
+  // ---------- weights ----------
+  $('weights').addEventListener('input', function (ev) {
+    var c = ev.target.dataset.cat;
+    if (!c) return;
+    var v = Number(ev.target.value);
+    active().weights[c] = isFinite(v) && v > 0 ? v : 0;
+    save();
+    renderWeightNorms();
+    renderSummary();
+    renderTable();
+    updatePreview();
+  });
+
+  // ---------- subjects ----------
+  $('subject').addEventListener('change', function (ev) {
+    state.activeSubjectId = ev.target.value;
+    save();
+    resetForm();
+    renderAll();
+  });
+
+  $('newSubject').addEventListener('click', function () {
+    var name = (prompt('Subject name:') || '').trim();
+    if (!name) return;
+    var s = newSubject(name);
+    var cur = active();
+    s.weights = Object.assign({}, cur.weights); // start from current weights
+    state.subjects.push(s);
+    state.activeSubjectId = s.id;
+    save();
+    resetForm();
+    renderAll();
+  });
+
+  $('renameSubject').addEventListener('click', function () {
+    var s = active();
+    var name = (prompt('Rename subject:', s.name) || '').trim();
+    if (!name) return;
+    s.name = name;
+    save();
+    renderSubjects();
+  });
+
+  $('deleteSubject').addEventListener('click', function () {
+    var s = active();
+    if (state.subjects.length <= 1) return;
+    if (!confirm('Delete “' + s.name + '” and its ' + s.assessments.length + ' assessment(s)?')) return;
+    state.subjects = state.subjects.filter(function (x) { return x.id !== s.id; });
+    state.activeSubjectId = state.subjects[0].id;
+    save();
+    resetForm();
+    renderAll();
+  });
+
+  // ---------- import / export / reset ----------
+  $('exportBtn').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gradebook-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  $('importBtn').addEventListener('click', function () { $('importFile').click(); });
+  $('importFile').addEventListener('change', function (ev) {
+    var file = ev.target.files[0];
+    ev.target.value = '';
+    if (!file) return;
+    file.text().then(function (text) {
+      var data = JSON.parse(text);
+      if (!data || !Array.isArray(data.subjects) || !data.subjects.length) throw new Error('No subjects found');
+      data.subjects.forEach(function (s) {
+        if (!s.id || !s.weights || !Array.isArray(s.assessments)) throw new Error('Bad subject format');
+      });
+      if (!confirm('Replace your current gradebook with the imported one?')) return;
+      state = data;
+      save();
+      resetForm();
+      renderAll();
+    }).catch(function (e) { alert('Could not import: ' + e.message); });
+  });
+
+  $('resetBtn').addEventListener('click', function () {
+    if (!confirm('Delete ALL subjects and assessments? Export first if you want a backup.')) return;
+    var first = newSubject('My Course');
+    state = { subjects: [first], activeSubjectId: first.id };
+    save();
+    resetForm();
+    renderAll();
+  });
+
+  // ---------- boot ----------
+  renderScoreRows();
+  renderAll();
+})();
+</script>
+</body>
+</html>

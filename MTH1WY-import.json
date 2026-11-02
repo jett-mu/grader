@@ -1,0 +1,173 @@
+{
+  "subjects": [
+    {
+      "id": "mth1wy",
+      "name": "MTH1WY",
+      "weights": {
+        "K": 22.5,
+        "T": 10.0,
+        "C": 10.0,
+        "A": 22.5
+      },
+      "assessments": [
+        {
+          "id": "xl3",
+          "name": "Ch 1 Quiz 1",
+          "weight": 5.0,
+          "date": "",
+          "scores": {
+            "K": {
+              "earned": 15.0,
+              "total": 15.0
+            },
+            "T": null,
+            "C": {
+              "earned": 11.0,
+              "total": 11.0
+            },
+            "A": {
+              "earned": 7.0,
+              "total": 7.0
+            }
+          }
+        },
+        {
+          "id": "xl4",
+          "name": "Ch 1 Test",
+          "weight": 10.0,
+          "date": "",
+          "scores": {
+            "K": {
+              "earned": 9.75,
+              "total": 10.0
+            },
+            "T": {
+              "earned": 5.0,
+              "total": 5.0
+            },
+            "C": {
+              "earned": 10.5,
+              "total": 11.0
+            },
+            "A": {
+              "earned": 9.25,
+              "total": 10.0
+            }
+          }
+        },
+        {
+          "id": "xl5",
+          "name": "Ch 2 Quiz 1",
+          "weight": 5.0,
+          "date": "",
+          "scores": {
+            "K": {
+              "earned": 17.0,
+              "total": 17.0
+            },
+            "T": null,
+            "C": {
+              "earned": 2.0,
+              "total": 2.0
+            },
+            "A": {
+              "earned": 9.0,
+              "total": 9.0
+            }
+          }
+        },
+        {
+          "id": "xl6",
+          "name": "Ch 2 Test",
+          "weight": 10.0,
+          "date": "",
+          "scores": {
+            "K": {
+              "earned": 18.0,
+              "total": 18.0
+            },
+            "T": {
+              "earned": 6.75,
+              "total": 7.0
+            },
+            "C": {
+              "earned": 4.75,
+              "total": 5.0
+            },
+            "A": {
+              "earned": 8.0,
+              "total": 8.0
+            }
+          }
+        },
+        {
+          "id": "xl7",
+          "name": "Ch 3 Quiz 1",
+          "weight": 5.0,
+          "date": "",
+          "scores": {
+            "K": {
+              "earned": 13.0,
+              "total": 13.0
+            },
+            "T": null,
+            "C": {
+              "earned": 6.0,
+              "total": 6.0
+            },
+            "A": {
+              "earned": 18.0,
+              "total": 18.0
+            }
+          }
+        },
+        {
+          "id": "xl8",
+          "name": "Ch 3 Test",
+          "weight": 10.0,
+          "date": "",
+          "scores": {
+            "K": {
+              "earned": 12.75,
+              "total": 13.0
+            },
+            "T": {
+              "earned": 7.0,
+              "total": 7.0
+            },
+            "C": {
+              "earned": 5.75,
+              "total": 6.0
+            },
+            "A": {
+              "earned": 20.0,
+              "total": 20.0
+            }
+          }
+        },
+        {
+          "id": "xl9",
+          "name": "Ch 3 Quiz 1",
+          "weight": 5.0,
+          "date": "",
+          "scores": {
+            "K": {
+              "earned": 12.0,
+              "total": 12.0
+            },
+            "T": null,
+            "C": {
+              "earned": 2.0,
+              "total": 2.0
+            },
+            "A": {
+              "earned": 10.0,
+              "total": 10.0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "activeSubjectId": "mth1wy"
+}
